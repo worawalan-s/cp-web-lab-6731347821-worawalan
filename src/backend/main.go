@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
 
 	router "cp-web-template-backend/internal/endpoints"
 	"cp-web-template-backend/internal/service"
@@ -18,12 +19,17 @@ func main() {
 func buildAppService() service.Service {
 	healthService := service.NewDefaultHealthService()
 	fooBarService := service.NewDefaultFooBarService()
+	greetService := service.NewDefaultGreetService()
 
-	return service.NewDefaultService(healthService, fooBarService)
+	return service.NewDefaultService(healthService, fooBarService, greetService)
 }
 
 func newApp(appService service.Service) *fiber.App {
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+	}))
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("ok")
@@ -32,6 +38,7 @@ func newApp(appService service.Service) *fiber.App {
 	router.Register(app,
 		router.NewHealthzRouter(appService),
 		router.NewFooBarRouter(appService),
+		router.NewGreetRouter(appService),
 	)
 
 	return app
